@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  guru
+  murid
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  nama       String
+  email      String   @unique
+  password   String
+  role       Role     @default(murid)
+  kelasId    Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  kelas          Kelas?         @relation(fields: [kelasId], references: [id])
+  materi         Materi[]
+  kuis           Kuis[]
+  jawabanSiswa   JawabanSiswa[]
+  hasilKuis      HasilKuis[]
+  sessions       Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique @db.VarChar(512)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Kelas {
+  id          Int      @id @default(autoincrement())
+  namaKelas   String
+  tingkat     String
+  jurusan     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users User[]
+
+  @@map("kelas")
+}
+
+model MataPelajaran {
+  id          Int      @id @default(autoincrement())
+  nama        String
+  kode        String   @unique
+  deskripsi   String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  materi Materi[]
+
+  @@map("mata_pelajaran")
+}
+
+model Materi {
+  id            Int      @id @default(autoincrement())
+  judul         String
+  deskripsi     String?  @db.Text
+  kategori      String
+  filePdf       String?
+  videoYoutube  String?
+  isiMateri     String?  @db.LongText
+  guruId        Int
+  mapelId       Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  guru  User           @relation(fields: [guruId], references: [id])
+  mapel MataPelajaran? @relation(fields: [mapelId], references: [id])
+  kuis  Kuis[]
+
+  @@map("materi")
+}
+
+model Kuis {
+  id        Int      @id @default(autoincrement())
+  judul     String
+  materiId  Int
+  guruId    Int
+  durasi    Int      // dalam menit
+  isAktif   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  materi       Materi        @relation(fields: [materiId], references: [id])
+  guru         User          @relation(fields: [guruId], references: [id])
+  soal         Soal[]
+  jawabanSiswa JawabanSiswa[]
+  hasilKuis    HasilKuis[]
+
+  @@map("kuis")
+}
+
+model Soal {
+  id           Int      @id @default(autoincrement())
+  kuisId       Int
+  pertanyaan   String   @db.Text
+  pilihanA     String
+  pilihanB     String
+  pilihanC     String
+  pilihanD     String
+  jawabanBenar String   // A, B, C, atau D
+  bobotNilai   Int      @default(10)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  kuis         Kuis           @relation(fields: [kuisId], references: [id], onDelete: Cascade)
+  jawabanSiswa JawabanSiswa[]
+
+  @@map("soal")
+}
+
+model JawabanSiswa {
+  id        Int      @id @default(autoincrement())
+  kuisId    Int
+  soalId    Int
+  userId    Int
+  jawaban   String   // A, B, C, atau D
+  isBenar   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  kuis Kuis @relation(fields: [kuisId], references: [id], onDelete: Cascade)
+  soal Soal @relation(fields: [soalId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([kuisId, soalId, userId])
+  @@map("jawaban_siswa")
+}
+
+model HasilKuis {
+  id           Int      @id @default(autoincrement())
+  kuisId       Int
+  userId       Int
+  nilai        Float
+  totalBenar   Int
+  totalSoal    Int
+  waktuMulai   DateTime
+  waktuSelesai DateTime
+  createdAt    DateTime @default(now())
+
+  kuis Kuis @relation(fields: [kuisId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([kuisId, userId])
+  @@map("hasil_kuis")
+}
