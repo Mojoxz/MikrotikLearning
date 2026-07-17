@@ -1,4 +1,4 @@
-# 🌐 Aplikasi Web Pembelajaran Mikrotik - SMK Kelas XI
+<!-- # 🌐 Aplikasi Web Pembelajaran Mikrotik - SMK Kelas XI
 
 Platform pembelajaran Mikrotik berbasis web untuk siswa SMK Kelas XI jurusan TKJ, dibangun dengan Next.js 15, Prisma ORM, MySQL (Laragon), dan NextAuth.
 
@@ -250,4 +250,4 @@ npx prisma generate
 | POST | `/api/kuis/[id]/kerjakan` | Submit kuis | Murid |
 | GET | `/api/nilai` | Riwayat nilai | All (filtered) |
 | POST | `/api/upload` | Upload PDF | Admin/Guru |
-| GET | `/api/dashboard/stats` | Statistik | Admin |
+| GET | `/api/dashboard/stats` | Statistik | Admin | -->
